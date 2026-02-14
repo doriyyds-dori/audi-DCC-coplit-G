@@ -2,31 +2,18 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 
-console.log("🚀 Audi E5 Copilot: 应用启动中...");
+console.log("🚀 [Audi System] 初始化序列启动...");
 
-const startApp = () => {
-  const rootElement = document.getElementById('root');
-  if (!rootElement) {
-    console.error("❌ 错误：未找到 id 为 'root' 的挂载点");
-    return;
-  }
+const container = document.getElementById('root');
 
-  try {
-    const root = ReactDOM.createRoot(rootElement);
-    root.render(
-      <React.StrictMode>
-        <App />
-      </React.StrictMode>
-    );
-    console.log("✅ Audi E5 Copilot: 挂载成功");
-  } catch (error) {
-    console.error("❌ Audi E5 Copilot: 渲染过程中出错:", error);
-  }
-};
-
-// 确保 DOM 加载完成后再执行
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', startApp);
+if (container) {
+  const root = ReactDOM.createRoot(container);
+  root.render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
+  );
+  console.log("✅ [Audi System] UI 渲染引擎已就绪");
 } else {
-  startApp();
+  console.error("❌ [Audi System] 关键错误：未找到挂载点 #root");
 }

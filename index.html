@@ -7,12 +7,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-      body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+      body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; margin: 0; }
       /* Custom Scrollbar */
-      ::-webkit-scrollbar { width: 8px; }
+      ::-webkit-scrollbar { width: 6px; }
       ::-webkit-scrollbar-track { background: #f1f1f1; }
-      ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+      ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
       ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+      #root { min-height: 100vh; display: flex; flex-direction: column; }
     </style>
   <script type="importmap">
 {
@@ -30,8 +31,12 @@
 </script>
 </head>
   <body>
-    <div id="root"></div>
-    <!-- 在 Vite 环境中，直接引用根目录下的入口文件 -->
+    <div id="root">
+      <!-- 预加载占位符，如果看到这个说明 React 还没接管 -->
+      <div style="display:flex; justify-content:center; align-items:center; height:100vh; color:#94a3b8; font-weight:bold;">
+        系统初始化中...
+      </div>
+    </div>
     <script type="module" src="/index.tsx"></script>
   </body>
 </html>

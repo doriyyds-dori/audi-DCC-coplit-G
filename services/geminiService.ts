@@ -1,17 +1,18 @@
+
 import { GoogleGenAI, Chat } from "@google/genai";
 import { DOJO_SYSTEM_INSTRUCTION } from '../constants';
 
-// Initialize the API client
-// Note: In a real production app, this should be handled via a backend proxy to secure the key.
-// For this frontend-only demo, we use the env variable directly as instructed.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+// Initialize the API client according to instructions.
+// The API key must be obtained exclusively from the environment variable process.env.API_KEY.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 let chatSession: Chat | null = null;
 
 export const startDojoSession = async (): Promise<string> => {
   try {
+    // Using 'gemini-3-pro-preview' for complex reasoning/roleplay tasks as per model selection guidelines.
     chatSession = ai.chats.create({
-      model: 'gemini-2.5-flash-native-audio-preview-12-2025', // Using the conversational model suitable for roleplay
+      model: 'gemini-3-pro-preview',
       config: {
         systemInstruction: DOJO_SYSTEM_INSTRUCTION,
         temperature: 0.9, // Higher temperature for more natural/varied persona responses
@@ -22,6 +23,7 @@ export const startDojoSession = async (): Promise<string> => {
     const response = await chatSession.sendMessage({ 
         message: "喂？是奥迪展厅吗？我看到你们E5的广告了。" 
     });
+    // Accessing .text as a property on GenerateContentResponse.
     return response.text || "喂？";
   } catch (error) {
     console.error("Failed to start Dojo session:", error);
@@ -35,6 +37,7 @@ export const sendDojoMessage = async (userMessage: string): Promise<string> => {
   }
   try {
     const response = await chatSession.sendMessage({ message: userMessage });
+    // Accessing .text as a property on GenerateContentResponse.
     return response.text || "...";
   } catch (error) {
     console.error("Dojo message failed:", error);
@@ -44,7 +47,6 @@ export const sendDojoMessage = async (userMessage: string): Promise<string> => {
 
 export const generateSummaryEnhancement = async (jsonString: string): Promise<string> => {
   try {
-    const model = 'gemini-3-flash-preview';
     const prompt = `
       你是一个专业的汽车CRM数据专员。请根据提供的JSON数据（包含客户基础信息、需求画像、通话操作日志），生成一段标准的【电话邀约跟进记录】。
 
@@ -65,10 +67,12 @@ export const generateSummaryEnhancement = async (jsonString: string): Promise<st
       [根据日志中是否有“敲定时间”或“加微”动作，判断下一步计划。若无明确动作，默认为“持续跟进”]
     `;
     
+    // Using 'gemini-3-flash-preview' for basic text tasks like summarization.
     const response = await ai.models.generateContent({
-      model: model,
+      model: 'gemini-3-flash-preview',
       contents: prompt,
     });
+    // Accessing .text as a property on GenerateContentResponse.
     return response.text || "生成记录失败";
   } catch (error) {
     console.warn("Summary enhancement failed, returning raw log", error);

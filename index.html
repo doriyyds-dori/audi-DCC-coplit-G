@@ -14,13 +14,34 @@
       ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
       ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
       #root { min-height: 100vh; display: flex; flex-direction: column; }
+      
+      .loader-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #000;
+        color: #fff;
+      }
+      .audi-rings {
+        font-size: 40px;
+        letter-spacing: 5px;
+        font-weight: 900;
+        margin-bottom: 20px;
+        animation: pulse 2s infinite ease-in-out;
+      }
+      @keyframes pulse {
+        0%, 100% { opacity: 0.5; transform: scale(0.98); }
+        50% { opacity: 1; transform: scale(1); }
+      }
     </style>
   <script type="importmap">
 {
   "imports": {
+    "react/": "https://esm.sh/react@^19.2.4/",
     "react": "https://esm.sh/react@^19.2.4",
     "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
-    "react/": "https://esm.sh/react@^19.2.4/",
     "lucide-react": "https://esm.sh/lucide-react@^0.564.0",
     "@google/genai": "https://esm.sh/@google/genai@^1.41.0",
     "recharts": "https://esm.sh/recharts@^3.7.0",
@@ -32,9 +53,9 @@
 </head>
   <body>
     <div id="root">
-      <!-- 预加载占位符，如果看到这个说明 React 还没接管 -->
-      <div style="display:flex; justify-content:center; align-items:center; height:100vh; color:#94a3b8; font-weight:bold;">
-        系统初始化中...
+      <div class="loader-container">
+        <div class="audi-rings">AUDI</div>
+        <div style="font-size: 12px; opacity: 0.5; letter-spacing: 2px;">E5 COPILOT ENGINE STARTING...</div>
       </div>
     </div>
     <script type="module" src="/index.tsx"></script>

@@ -2,18 +2,19 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 
-console.log("🚀 [Audi System] 初始化序列启动...");
+console.log("%c 🚀 [AUDI CORE] System ignition sequence started... ", "background: #000; color: #fff; font-weight: bold; padding: 4px;");
 
 const container = document.getElementById('root');
 
 if (container) {
   const root = ReactDOM.createRoot(container);
+  // React 接管后，loader 会自动被替换
   root.render(
     <React.StrictMode>
       <App />
     </React.StrictMode>
   );
-  console.log("✅ [Audi System] UI 渲染引擎已就绪");
+  console.log("%c ✅ [AUDI CORE] UI Engine mounted and running ", "color: #10b981; font-weight: bold;");
 } else {
-  console.error("❌ [Audi System] 关键错误：未找到挂载点 #root");
+  console.error("❌ [AUDI CORE] CRITICAL ERROR: Mount point #root missing");
 }

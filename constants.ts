@@ -81,8 +81,15 @@ export const CALL_FLOW_CONFIG: CallStageConfig[] = [
     icon: 'Zap',
     colorTheme: 'bg-amber-50 border-amber-200 text-amber-800',
     items: [
-      { id: 'pt_scr', label: '🖥️ 59寸大屏', content: '看看E5这个59寸5K大屏，副驾看电影不影响主驾，孩子后排也能投屏。', logSummary: '推介：59寸大屏' },
-      { id: 'pt_800v', label: '⚡ 800V超充', content: 'E5是800V平台的，充电10分钟就能跑370公里，上个洗手间的功夫电就充好了。', logSummary: '推介：800V超充' }
+      { id: 'pt_ext_1', category: '静态外观', label: '🎨 封闭式前脸', content: 'E5采用了奥迪最新的封闭式前脸设计，配上AUDI字母标，非常有未来感，走在街上回头率极高。', logSummary: '推介：静态外观-封闭式前脸' },
+      { id: 'pt_ext_2', category: '静态外观', label: '💡 智能灯光', content: '奥迪是灯厂，E5的智能灯光系统可以自定义灯语，非常有仪式感。', logSummary: '推介：静态外观-智能灯光' },
+      { id: 'pt_spa_1', category: '车辆空间', label: '📏 纯电平台空间', content: '得益于原生纯电平台，E5的轴距非常长，后排空间比同级别的燃油车大得多，全家出行非常舒适。', logSummary: '推介：车辆空间-后排空间' },
+      { id: 'pt_int_1', category: '座舱交互', label: '🖥️ 59寸大屏', content: '看看E5这个59寸5K大屏，副驾看电影不影响主驾，孩子后排也能投屏。', logSummary: '推介：座舱交互-59寸大屏' },
+      { id: 'pt_com_1', category: '豪华舒适', label: '🛋️ 零重力座椅', content: '咱们这车配了零重力座椅，午休或者长途驾驶累了，一键躺平，非常解乏。', logSummary: '推介：豪华舒适-零重力座椅' },
+      { id: 'pt_dyn_1', category: '动态试驾', label: '🏎️ 3.4秒加速', content: '双电机四驱版加速只要3.4秒，这种推背感您一定要来试驾体验一下。', logSummary: '推介：动态试驾-加速性能' },
+      { id: 'pt_pow_1', category: '补能和三电', label: '⚡ 800V超充', content: 'E5是800V平台的，充电10分钟就能跑370公里，上个洗手间的功夫电就充好了。', logSummary: '推介：补能和三电-800V超充' },
+      { id: 'pt_pow_2', category: '补能和三电', label: '🔋 续航里程', content: 'CLTC续航达到了700公里以上，平时上下班半个月充一次电就够了。', logSummary: '推介：补能和三电-续航里程' },
+      { id: 'pt_drv_1', category: '智能驾驶', label: '🤖 Momenta智驾', content: '咱们用的是Momenta的高阶智驾方案，城市领航、自动泊车都非常丝滑，开起来特别省心。', logSummary: '推介：智能驾驶-Momenta智驾' }
     ]
   },
   {

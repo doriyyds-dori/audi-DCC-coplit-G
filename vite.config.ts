@@ -9,13 +9,12 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     define: {
-      // 这里的替换非常关键，直接决定了 geminiService 是否能拿到 Key
-      'process.env.API_KEY': JSON.stringify(env.VITE_GEMINI_API_KEY || '')
+      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY || '')
     },
     server: {
-      port: 5173,
+      port: 3000,
       strictPort: true,
-      open: true
+      host: '0.0.0.0'
     }
   };
 });

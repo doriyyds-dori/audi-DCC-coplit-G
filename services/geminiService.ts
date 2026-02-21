@@ -2,8 +2,19 @@
 import { GoogleGenAI, Type, Chat } from "@google/genai";
 import { DOJO_SYSTEM_INSTRUCTION } from "../constants";
 
-// Initialize the Google GenAI client with the API key from environment variables
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Lazy initialization of the Google GenAI client
+let aiInstance: GoogleGenAI | null = null;
+
+const getAI = () => {
+  if (!aiInstance) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      throw new Error("GEMINI_API_KEY is not set. Please ensure it is configured in your environment.");
+    }
+    aiInstance = new GoogleGenAI({ apiKey });
+  }
+  return aiInstance;
+};
 
 // Module-level variable to maintain the state of the active Dojo chat session
 let dojoChat: Chat | null = null;
@@ -13,6 +24,7 @@ let dojoChat: Chat | null = null;
  */
 export const generateSummaryEnhancement = async (data: any): Promise<{profile: string, record: string, plan: string}> => {
   try {
+    const ai = getAI();
     const prompt = `
       你是一个奥迪DCC中心的高级CRM专家。请根据以下通话原始数据生成标准的【AMS系统记录】。
       
@@ -69,6 +81,7 @@ export const generateSummaryEnhancement = async (data: any): Promise<{profile: s
  */
 export const startDojoSession = async (): Promise<string> => {
   try {
+    const ai = getAI();
     // Use gemini-3-pro-preview for complex reasoning and creative roleplay tasks
     dojoChat = ai.chats.create({
       model: 'gemini-3-pro-preview',

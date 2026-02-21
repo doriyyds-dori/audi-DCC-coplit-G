@@ -23,6 +23,7 @@ export interface ScriptButton {
   logSummary: string; // Short text for CRM log
   tags?: string[]; // Visual tags like 'Hot', 'New'
   models?: string[]; // New: Applicable car models (empty = universal)
+  category?: string; // New: Category for filtering (e.g. in PITCH stage)
 }
 
 export interface CallStageConfig {

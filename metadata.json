@@ -1,0 +1,5 @@
+{
+  "name": "智能电话邀约话术助手",
+  "description": "交互式电话邀约话术模拟系统，支持首次邀约与保有潜客场景切换，支持CSV自定义话术库。",
+  "requestFramePermissions": []
+}

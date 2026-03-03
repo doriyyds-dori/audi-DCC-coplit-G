@@ -30,10 +30,33 @@ function cn(...inputs: ClassValue[]) {
 
 export default function App() {
   const [customerType, setCustomerType] = useState<CustomerType>('existing');
-  const [existingScript, setExistingScript] = useState<ScriptStep[]>(DEFAULT_EXISTING_SCRIPT);
-  const [newScript, setNewScript] = useState<ScriptStep[]>([]);
-  const [commonFaqScript, setCommonFaqScript] = useState<ScriptStep[]>(DEFAULT_COMMON_FAQ);
+  const [existingScript, setExistingScript] = useState<ScriptStep[]>(() => {
+    const saved = localStorage.getItem('existingScript');
+    return saved ? JSON.parse(saved) : DEFAULT_EXISTING_SCRIPT;
+  });
+  const [newScript, setNewScript] = useState<ScriptStep[]>(() => {
+    const saved = localStorage.getItem('newScript');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [commonFaqScript, setCommonFaqScript] = useState<ScriptStep[]>(() => {
+    const saved = localStorage.getItem('commonFaqScript');
+    return saved ? JSON.parse(saved) : DEFAULT_COMMON_FAQ;
+  });
   const [globalOptions, setGlobalOptions] = useState<ScriptOption[]>([]);
+
+  // Persistence logic
+  useEffect(() => {
+    localStorage.setItem('existingScript', JSON.stringify(existingScript));
+  }, [existingScript]);
+
+  useEffect(() => {
+    localStorage.setItem('newScript', JSON.stringify(newScript));
+  }, [newScript]);
+
+  useEffect(() => {
+    localStorage.setItem('commonFaqScript', JSON.stringify(commonFaqScript));
+  }, [commonFaqScript]);
+
   const [currentStepId, setCurrentStepId] = useState<string>('开场白');
   const [history, setHistory] = useState<{ role: 'agent' | 'customer', text: string }[]>([]);
   const [isCallActive, setIsCallActive] = useState(false);
@@ -144,12 +167,34 @@ export default function App() {
     setHistory(newHistory);
   };
 
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+
   const downloadTemplate = () => {
     const blob = new Blob([CSV_TEMPLATE], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = 'script_template.csv';
     link.click();
+  };
+
+  const downloadOfflineHtml = () => {
+    // Check if running as a local file (offline)
+    if (window.location.protocol === 'file:') {
+      // In offline mode, we can't call the server API. 
+      // Instead, we save the current DOM as a new HTML file.
+      const htmlContent = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = '邀约话术助手_离线更新版.html';
+      link.click();
+      URL.revokeObjectURL(url);
+      alert('检测到您正在离线使用。已为您生成当前页面的快照文件。\n\n注意：如果您修改了话术，建议将此文件与 CSV 话术文件一同备份。');
+    } else {
+      // On the server, call the real backend API to get the bundled single file
+      window.location.href = '/api/download-offline';
+    }
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, target: 'existing' | 'new' | 'common' = 'existing') => {
@@ -236,6 +281,29 @@ export default function App() {
             <div className="hidden sm:block h-5 w-px bg-gray-200 mx-1" />
             
             <div className="flex items-center gap-2">
+              <button onClick={() => setIsHelpOpen(true)} className="p-1.5 sm:p-0 sm:flex items-center gap-2 text-[10px] sm:text-xs font-bold text-blue-600 hover:text-blue-700" title="使用说明">
+                <HelpCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> <span className="hidden sm:inline">使用说明</span>
+              </button>
+
+              <div className="h-4 w-px bg-gray-200 mx-1 hidden sm:block" />
+
+              <button onClick={() => {
+                if(confirm('确定要重置所有话术吗？这将清除您上传的所有自定义内容并恢复到初始版本。')) {
+                  localStorage.clear();
+                  window.location.reload();
+                }
+              }} className="p-1.5 sm:p-0 sm:flex items-center gap-2 text-[10px] sm:text-xs font-bold text-red-500 hover:text-red-600" title="重置系统">
+                <RotateCcw className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> <span className="hidden sm:inline">重置系统</span>
+              </button>
+              
+              <div className="h-4 w-px bg-gray-200 mx-1 hidden sm:block" />
+
+              <button onClick={downloadOfflineHtml} className="p-1.5 sm:p-0 sm:flex items-center gap-2 text-[10px] sm:text-xs font-bold text-emerald-600 hover:text-emerald-700" title="下载离线版">
+                <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> <span className="hidden sm:inline">下载离线版</span>
+              </button>
+
+              <div className="h-4 w-px bg-gray-200 mx-1 hidden sm:block" />
+
               <button onClick={downloadTemplate} className="p-1.5 sm:p-0 sm:flex items-center gap-2 text-[10px] sm:text-xs font-bold text-gray-500 hover:text-brand" title="下载模板">
                 <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> <span className="hidden sm:inline">下载模板</span>
               </button>
@@ -243,7 +311,7 @@ export default function App() {
               <div className="h-4 w-px bg-gray-200 mx-1 hidden sm:block" />
 
               <label className="p-1.5 sm:p-0 sm:flex items-center gap-2 text-[10px] sm:text-xs font-bold text-brand hover:text-brand-hover cursor-pointer" title="上传常见话术">
-                <HelpCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> <span className="hidden sm:inline">上传常见话术</span>
+                <Upload className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> <span className="hidden sm:inline">上传常见话术</span>
                 <input type="file" accept=".csv" className="hidden" onChange={(e) => handleFileUpload(e, 'common')} />
               </label>
 
@@ -461,7 +529,7 @@ export default function App() {
                 <div className="bg-brand p-1 rounded-md">
                   <FileText className="w-3.5 h-3.5 text-white" />
                 </div>
-                <span className="text-[10px] font-black text-brand uppercase tracking-widest">当前阶段</span>
+                <span className="text-[10px] font-black text-white uppercase tracking-widest">当前阶段</span>
               </div>
               <span className="text-xs font-bold text-white">{currentStep?.phase || '准备中'}</span>
             </div>
@@ -475,6 +543,79 @@ export default function App() {
           </div>
         </div>
       </main>
+      {/* Help Modal */}
+      {isHelpOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-brand text-white">
+              <div className="flex items-center gap-2">
+                <HelpCircle className="w-6 h-6" />
+                <h2 className="text-xl font-bold">邀约话术助手 - 使用手册</h2>
+              </div>
+              <button onClick={() => setIsHelpOpen(false)} className="p-2 hover:bg-white/20 rounded-full transition-colors">
+                <RotateCcw className="w-5 h-5 rotate-45" />
+              </button>
+            </div>
+            <div className="p-8 overflow-y-auto text-gray-600 space-y-8">
+              <section>
+                <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <span className="w-6 h-6 bg-brand/10 text-brand rounded-full flex items-center justify-center text-sm">1</span>
+                  快速上手指南
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="bg-gray-50 p-4 rounded-xl">
+                    <p className="font-bold text-gray-800 mb-1 text-sm">主流程通话</p>
+                    <p className="text-xs">选择左上角客户类型，跟随左侧建议话术。点击紫色按钮反馈，系统自动进入下一阶段。</p>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-xl">
+                    <p className="font-bold text-gray-800 mb-1 text-sm">应对突发提问</p>
+                    <p className="text-xs">客户问及价格、配置时，使用右侧FAQ菜单。三级分类精准定位，点击即出标准答案。</p>
+                  </div>
+                </div>
+              </section>
+
+              <section>
+                <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <span className="w-6 h-6 bg-brand/10 text-brand rounded-full flex items-center justify-center text-sm">2</span>
+                  话术编写规范 (CSV)
+                </h3>
+                <div className="space-y-3">
+                  <div className="border-l-4 border-brand pl-4 py-1">
+                    <p className="text-sm font-bold text-gray-800">常见问题 (FAQ) 规范：</p>
+                    <p className="text-xs mt-1">匹配键 (CustomerOption) 必须为 <b>一级分类_二级分类_问题</b> 格式。例如：<code className="bg-gray-100 px-1">产品卖点_外观_灯语</code></p>
+                  </div>
+                  <div className="border-l-4 border-emerald-500 pl-4 py-1">
+                    <p className="text-sm font-bold text-gray-800">主流程规范：</p>
+                    <p className="text-xs mt-1">通过 <b>StepId</b> 和 <b>NextStepId</b> 实现逻辑跳转。确保跳转目标ID在表格中真实存在。</p>
+                  </div>
+                </div>
+              </section>
+
+              <section>
+                <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <span className="w-6 h-6 bg-brand/10 text-brand rounded-full flex items-center justify-center text-sm">3</span>
+                  更新与分发流程
+                </h3>
+                <ol className="list-decimal list-inside text-sm space-y-2 ml-2">
+                  <li>点击 <b>下载模板</b>，使用Excel编辑并保存为CSV格式。</li>
+                  <li>点击 <b>上传常见话术</b> 或 <b>流程话术</b> 进行更新。</li>
+                  <li>点击 <b>下载离线版</b> 生成最新的 HTML 独立文件。</li>
+                  <li>将该文件发给团队成员，双击即可离线使用最新话术。</li>
+                </ol>
+              </section>
+
+              <div className="bg-amber-50 border border-amber-100 p-4 rounded-xl text-amber-800 text-xs">
+                <b>💡 核心提示：</b> 离线版具备“内置记忆”。主管更新后分发新文件，员工打开即是最新版。若需清空本地缓存，请点击红色的“重置系统”。
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-100 flex justify-end">
+              <button onClick={() => setIsHelpOpen(false)} className="px-6 py-2 bg-brand text-white rounded-xl font-bold hover:bg-brand-hover transition-colors">
+                我知道了
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

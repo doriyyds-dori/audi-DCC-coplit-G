@@ -27,3 +27,14 @@ export interface MenuItem {
 export type MenuData = MenuItem[];
 
 export type CustomerType = 'existing' | 'new';
+
+/** CSV 上传时每行数据的类型定义 */
+export interface CsvRow {
+  Phase: string;
+  StepId: string;
+  CoreLogic?: string;
+  AgentScript?: string;
+  CustomerOption: string;
+  AgentResponse: string;
+  NextStepId?: string;
+}

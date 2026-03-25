@@ -6,7 +6,7 @@ import { useAuth } from '../auth/AuthContext';
 /**
  * LoginPage — 登录页
  *
- * 任务包 3 阶段：接入 AuthContext，使用硬编码测试账号登录。
+ * 调用后端 POST /api/auth/login 进行真实登录校验。
  * 登录成功后按角色跳转到 /app 或 /admin。
  */
 export default function LoginPage() {
@@ -15,6 +15,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<{ username?: string; password?: string }>({});
   const [loginError, setLoginError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 已登录用户访问 /login → 按角色重定向
   if (user) {
@@ -35,13 +36,15 @@ export default function LoginPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoginError('');
 
     if (!validate()) return;
 
-    const result = login(username.trim(), password);
+    setIsSubmitting(true);
+    const result = await login(username.trim(), password);
+    setIsSubmitting(false);
 
     if (!result.success) {
       setLoginError(result.error || '登录失败');
@@ -117,9 +120,10 @@ export default function LoginPage() {
           {/* 登录按钮 */}
           <button
             type="submit"
-            className="w-full bg-brand hover:bg-brand-hover text-white py-2.5 rounded-xl text-sm font-bold transition-colors active:scale-[0.98]"
+            disabled={isSubmitting}
+            className={`w-full bg-brand hover:bg-brand-hover text-white py-2.5 rounded-xl text-sm font-bold transition-colors active:scale-[0.98] ${isSubmitting ? 'opacity-60 cursor-not-allowed' : ''}`}
           >
-            登录
+            {isSubmitting ? '登录中…' : '登录'}
           </button>
         </form>
 

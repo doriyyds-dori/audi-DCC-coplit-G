@@ -13,7 +13,7 @@ import { useAuth } from '../auth/AuthContext';
 export default function AppPage() {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
-  const { user, logout } = useAuth();
+  const { user, logout, getToken } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -63,12 +63,14 @@ export default function AppPage() {
     setSubmitError('');
 
     try {
+      const token = getToken();
       const res = await fetch('/api/call-records', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
-          userId: user?.userId ?? '',
-          storeId: user?.storeId ?? '',
           status,
           scenarioType: customerType,
         }),

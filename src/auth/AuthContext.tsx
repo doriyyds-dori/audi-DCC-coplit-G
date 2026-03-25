@@ -17,61 +17,17 @@ export interface AuthUser {
 interface AuthContextType {
   user: AuthUser | null;
   isLoading: boolean;
-  login: (username: string, password: string) => { success: boolean; error?: string };
+  login: (username: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
+  /** 获取当前 session token（供 API 请求用） */
+  getToken: () => string | null;
 }
 
 // ============================================================
-// 硬编码测试账号（任务包 3 阶段，后续接后端 API 替换）
+// localStorage 键名
 // ============================================================
 
-interface TestAccount {
-  username: string;
-  password: string;
-  user: AuthUser;
-}
-
-const TEST_ACCOUNTS: TestAccount[] = [
-  {
-    username: 'admin',
-    password: 'admin123',
-    user: {
-      userId: 'u_admin_001',
-      username: 'admin',
-      displayName: '系统管理员',
-      role: 'super_admin',
-      storeId: '',
-    },
-  },
-  {
-    username: 'user1',
-    password: 'user123',
-    user: {
-      userId: 'u_user_001',
-      username: 'user1',
-      displayName: '张三',
-      role: 'user',
-      storeId: 'store_001',
-    },
-  },
-  {
-    username: 'user2',
-    password: 'user123',
-    user: {
-      userId: 'u_user_002',
-      username: 'user2',
-      displayName: '李四',
-      role: 'user',
-      storeId: 'store_001',
-    },
-  },
-];
-
-// ============================================================
-// localStorage 键名（使用明确前缀，避免与话术数据冲突）
-// ============================================================
-
-const AUTH_STORAGE_KEY = 'auth_user';
+const TOKEN_STORAGE_KEY = 'auth_token';
 
 // ============================================================
 // Context
@@ -83,43 +39,77 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // 启动时从 localStorage 恢复登录态
+  // 启动时通过 token 调用 /api/auth/me 恢复登录态
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(AUTH_STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored) as AuthUser;
-        if (parsed && parsed.userId && parsed.role) {
-          setUser(parsed);
-        }
-      }
-    } catch {
-      localStorage.removeItem(AUTH_STORAGE_KEY);
+    const token = localStorage.getItem(TOKEN_STORAGE_KEY);
+    if (!token) {
+      setIsLoading(false);
+      return;
     }
-    setIsLoading(false);
+
+    fetch('/api/auth/me', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(async (res) => {
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.user) {
+            setUser(data.user as AuthUser);
+            return;
+          }
+        }
+        // token 无效或会话失效 → 清除
+        localStorage.removeItem(TOKEN_STORAGE_KEY);
+      })
+      .catch(() => {
+        localStorage.removeItem(TOKEN_STORAGE_KEY);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, []);
 
-  const login = (username: string, password: string): { success: boolean; error?: string } => {
-    const account = TEST_ACCOUNTS.find(
-      (a) => a.username === username && a.password === password
-    );
+  const login = async (username: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
 
-    if (!account) {
-      return { success: false, error: '用户名或密码错误' };
+      const data = await res.json();
+
+      if (res.ok && data.success && data.token && data.user) {
+        localStorage.setItem(TOKEN_STORAGE_KEY, data.token);
+        setUser(data.user as AuthUser);
+        return { success: true };
+      }
+
+      return { success: false, error: data.error || '登录失败' };
+    } catch {
+      return { success: false, error: '网络异常，请重试' };
     }
-
-    setUser(account.user);
-    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(account.user));
-    return { success: true };
   };
 
   const logout = () => {
+    const token = localStorage.getItem(TOKEN_STORAGE_KEY);
+    if (token) {
+      // 通知后端删除 session（不阻塞 UI）
+      fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      }).catch(() => {});
+    }
+    localStorage.removeItem(TOKEN_STORAGE_KEY);
     setUser(null);
-    localStorage.removeItem(AUTH_STORAGE_KEY);
+  };
+
+  const getToken = (): string | null => {
+    return localStorage.getItem(TOKEN_STORAGE_KEY);
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, login, logout, getToken }}>
       {children}
     </AuthContext.Provider>
   );

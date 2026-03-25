@@ -1,5 +1,5 @@
 import { useRef, useEffect } from 'react';
-import { Phone, User, Users, MessageSquare, CheckCircle2, Upload } from 'lucide-react';
+import { Phone, User, Users, MessageSquare, CheckCircle2, Upload, ClipboardCheck } from 'lucide-react';
 import { ScriptStep, ScriptOption } from './types';
 import { cn } from './utils';
 
@@ -17,6 +17,8 @@ interface ChatPanelProps {
   onStartCall: () => void;
   onResetCall: () => void;
   onCustomerResponse: (option: ScriptOption) => void;
+  /** 结束并记录通话回调（可选，任务包 5 新增） */
+  onEndAndRecord?: () => void;
 }
 
 export default function ChatPanel({
@@ -28,6 +30,7 @@ export default function ChatPanel({
   onStartCall,
   onResetCall,
   onCustomerResponse,
+  onEndAndRecord,
 }: ChatPanelProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -46,7 +49,14 @@ export default function ChatPanel({
             <span className="text-[10px] sm:text-xs font-bold text-gray-600">通话模拟中</span>
           </div>
           {isCallActive && (
-            <button onClick={onResetCall} className="text-[10px] font-bold text-red-500 hover:underline">重置对话</button>
+            <div className="flex items-center gap-3">
+              {onEndAndRecord && (
+                <button onClick={onEndAndRecord} className="text-[10px] font-bold text-brand hover:underline flex items-center gap-1">
+                  <ClipboardCheck className="w-3 h-3" />结束并记录通话
+                </button>
+              )}
+              <button onClick={onResetCall} className="text-[10px] font-bold text-gray-400 hover:text-red-500 hover:underline">重置对话</button>
+            </div>
           )}
         </div>
 
@@ -139,7 +149,14 @@ export default function ChatPanel({
           <div className="p-4 sm:p-6 bg-gray-50 border-t border-gray-100 text-center shrink-0">
             <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-green-500 mx-auto mb-1" />
             <p className="font-bold text-gray-800 text-xs sm:text-sm">流程结束，邀约成功！</p>
-            <button onClick={onResetCall} className="mt-2 text-brand text-[10px] sm:text-xs font-bold hover:underline">重新开始</button>
+            <div className="mt-2 flex items-center justify-center gap-4">
+              {onEndAndRecord && (
+                <button onClick={onEndAndRecord} className="text-brand text-[10px] sm:text-xs font-bold hover:underline flex items-center gap-1">
+                  <ClipboardCheck className="w-3.5 h-3.5" />结束并记录通话
+                </button>
+              )}
+              <button onClick={onResetCall} className="text-gray-400 text-[10px] sm:text-xs font-bold hover:underline">重新开始</button>
+            </div>
           </div>
         )}
       </div>

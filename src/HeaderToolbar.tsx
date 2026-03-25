@@ -1,5 +1,6 @@
 import React from 'react';
-import { Phone, Download, Upload, RotateCcw, HelpCircle, FileText } from 'lucide-react';
+import { Phone, Download, Upload, RotateCcw, HelpCircle, FileText, LogOut, User, Settings } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { CustomerType } from './types';
 import { cn } from './utils';
 
@@ -12,6 +13,12 @@ interface HeaderToolbarProps {
   onDownloadTemplate: () => void;
   onUploadCommon: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onUploadScript: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  /** 当前登录用户显示名称（可选） */
+  displayName?: string;
+  /** 登出回调（可选） */
+  onLogout?: () => void;
+  /** 管理后台链接（可选，仅管理员可见） */
+  adminHref?: string;
 }
 
 export default function HeaderToolbar({
@@ -23,6 +30,9 @@ export default function HeaderToolbar({
   onDownloadTemplate,
   onUploadCommon,
   onUploadScript,
+  displayName,
+  onLogout,
+  adminHref,
 }: HeaderToolbarProps) {
   return (
     <header className="bg-white border-b border-gray-200 shrink-0 z-30">
@@ -93,6 +103,39 @@ export default function HeaderToolbar({
               <input type="file" accept=".csv" className="hidden" onChange={(e) => { onUploadScript(e); e.target.value = ''; }} />
             </label>
           </div>
+
+          {/* 用户信息区域（任务包 4 新增） */}
+          {displayName && (
+            <>
+              <div className="h-5 w-px bg-gray-200 mx-1 hidden sm:block" />
+              <div className="flex items-center gap-2">
+                {adminHref && (
+                  <Link
+                    to={adminHref}
+                    className="flex items-center gap-1 text-[10px] sm:text-xs font-bold text-brand hover:text-brand-hover transition-colors"
+                    title="返回管理后台"
+                  >
+                    <Settings className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">管理后台</span>
+                  </Link>
+                )}
+                <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                  <User className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline font-bold">{displayName}</span>
+                </div>
+                {onLogout && (
+                  <button
+                    onClick={onLogout}
+                    className="flex items-center gap-1 text-[10px] sm:text-xs font-bold text-gray-400 hover:text-red-500 transition-colors"
+                    title="登出"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">登出</span>
+                  </button>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </header>

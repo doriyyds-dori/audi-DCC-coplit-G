@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useAuth } from '../auth/AuthContext';
 import { Store, Loader2 } from 'lucide-react';
 
 // ============================================================
@@ -18,12 +19,15 @@ export default function AdminStores() {
   const [stores, setStores] = useState<StoreItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const { getToken } = useAuth();
 
   useEffect(() => {
     setLoading(true);
     setError('');
+    const token = getToken();
+    const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
 
-    fetch('/api/admin/stores')
+    fetch('/api/admin/stores', { headers })
       .then(async (res) => {
         const json = await res.json();
         if (res.ok && json.success) {
@@ -34,7 +38,7 @@ export default function AdminStores() {
       })
       .catch(() => setError('网络异常，门店列表加载失败'))
       .finally(() => setLoading(false));
-  }, []);
+  }, [getToken]);
 
   // 加载中
   if (loading) {

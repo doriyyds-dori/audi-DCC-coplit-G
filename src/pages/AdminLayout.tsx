@@ -10,12 +10,13 @@ interface NavItem {
   label: string;
   icon: ReactNode;
   end?: boolean;
+  superOnly?: boolean;
 }
 
 const NAV_ITEMS: NavItem[] = [
   { to: '/admin', label: '今日统计', icon: <BarChart3 className="w-4 h-4" />, end: true },
   { to: '/admin/users', label: '用户管理', icon: <Users className="w-4 h-4" /> },
-  { to: '/admin/stores', label: '门店管理', icon: <Store className="w-4 h-4" /> },
+  { to: '/admin/stores', label: '门店管理', icon: <Store className="w-4 h-4" />, superOnly: true },
 ];
 
 /**
@@ -33,6 +34,8 @@ export default function AdminLayout() {
     navigate('/login', { replace: true });
   };
 
+  const visibleNav = NAV_ITEMS.filter(item => !item.superOnly || user?.role === 'super_admin');
+
   return (
     <div className="min-h-screen flex flex-col bg-[#F5F7F9]">
       {/* 顶部导航 */}
@@ -43,7 +46,7 @@ export default function AdminLayout() {
             <h1 className="text-sm sm:text-base font-bold text-gray-900 shrink-0">管理后台</h1>
 
             <nav className="flex items-center gap-1">
-              {NAV_ITEMS.map((item) => (
+              {visibleNav.map((item) => (
                 <NavLink
                   key={item.to}
                   to={item.to}

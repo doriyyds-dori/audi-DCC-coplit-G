@@ -1,5 +1,5 @@
 import { useRef, useEffect } from 'react';
-import { Phone, User, Users, MessageSquare, CheckCircle2, Upload, ClipboardCheck } from 'lucide-react';
+import { Phone, User, Users, MessageSquare, CheckCircle2, Upload, ClipboardCheck, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { ScriptStep, ScriptOption } from './types';
 import { cn } from './utils';
 
@@ -19,6 +19,10 @@ interface ChatPanelProps {
   onCustomerResponse: (option: ScriptOption) => void;
   /** 结束并记录通话回调（可选，任务包 5 新增） */
   onEndAndRecord?: () => void;
+  /** 话术反馈回调 */
+  onFeedback?: (messageIndex: number, feedbackType: 'like' | 'dislike', messageText: string) => void;
+  /** 当前对话中已提交的反馈状态 */
+  feedbackMap?: Map<number, 'like' | 'dislike'>;
 }
 
 export default function ChatPanel({
@@ -31,6 +35,8 @@ export default function ChatPanel({
   onResetCall,
   onCustomerResponse,
   onEndAndRecord,
+  onFeedback,
+  feedbackMap,
 }: ChatPanelProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -89,19 +95,48 @@ export default function ChatPanel({
               )}
             </div>
           ) : (
-            history.map((msg, i) => (
-              <div key={i} className={cn("flex items-start gap-2 sm:gap-2.5", msg.role === 'agent' ? "flex-row" : "flex-row-reverse")}>
-                <div className={cn("w-7 h-7 sm:w-8 sm:h-8 rounded flex items-center justify-center shrink-0", msg.role === 'agent' ? "bg-brand" : "bg-white border border-gray-200")}>
-                  {msg.role === 'agent' ? <User className="w-4 h-4 sm:w-5 sm:h-5 text-white" /> : <Users className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />}
+            history.map((msg, i) => {
+              const fb = feedbackMap?.get(i);
+              return (
+                <div key={i} className={cn("flex items-start gap-2 sm:gap-2.5", msg.role === 'agent' ? "flex-row" : "flex-row-reverse")}>
+                  <div className={cn("w-7 h-7 sm:w-8 sm:h-8 rounded flex items-center justify-center shrink-0", msg.role === 'agent' ? "bg-brand" : "bg-white border border-gray-200")}>
+                    {msg.role === 'agent' ? <User className="w-4 h-4 sm:w-5 sm:h-5 text-white" /> : <Users className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />}
+                  </div>
+                  <div className="flex flex-col">
+                    <div className={cn(
+                      "max-w-[85%] sm:max-w-[80%] px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-lg text-xs sm:text-[14px] leading-relaxed shadow-sm",
+                      msg.role === 'agent' ? "bg-white text-gray-800 rounded-tl-none" : "bg-[#95EC69] text-gray-800 rounded-tr-none"
+                    )}>
+                      {msg.text}
+                    </div>
+                    {msg.role === 'agent' && onFeedback && (
+                      <div className="flex items-center gap-1.5 mt-1 ml-1">
+                        <button
+                          onClick={() => onFeedback(i, 'like', msg.text)}
+                          className={cn(
+                            "p-1 rounded transition-all",
+                            fb === 'like' ? "text-brand bg-brand-light" : "text-gray-300 hover:text-brand hover:bg-brand-light/50"
+                          )}
+                          title="这句话术很好"
+                        >
+                          <ThumbsUp className="w-3 h-3" />
+                        </button>
+                        <button
+                          onClick={() => onFeedback(i, 'dislike', msg.text)}
+                          className={cn(
+                            "p-1 rounded transition-all",
+                            fb === 'dislike' ? "text-red-500 bg-red-50" : "text-gray-300 hover:text-red-500 hover:bg-red-50/50"
+                          )}
+                          title="这句话术需要优化"
+                        >
+                          <ThumbsDown className="w-3 h-3" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className={cn(
-                  "max-w-[85%] sm:max-w-[80%] px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-lg text-xs sm:text-[14px] leading-relaxed shadow-sm",
-                  msg.role === 'agent' ? "bg-white text-gray-800 rounded-tl-none" : "bg-[#95EC69] text-gray-800 rounded-tr-none"
-                )}>
-                  {msg.text}
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
 

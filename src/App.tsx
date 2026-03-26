@@ -26,7 +26,7 @@ function RootRedirect() {
   if (isLoading) return null;
 
   if (!user) return <Navigate to="/login" replace />;
-  if (user.role === 'super_admin') return <Navigate to="/admin" replace />;
+  if (user.role === 'super_admin' || user.role === 'store_admin') return <Navigate to="/admin" replace />;
   return <Navigate to="/app" replace />;
 }
 
@@ -45,7 +45,7 @@ export default function App() {
       <Route
         path="/admin"
         element={
-          <ProtectedRoute allowedRoles={['super_admin']}>
+          <ProtectedRoute allowedRoles={['super_admin', 'store_admin']}>
             <AdminLayout />
           </ProtectedRoute>
         }

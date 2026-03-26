@@ -19,7 +19,7 @@ export default function LoginPage() {
 
   // 已登录用户访问 /login → 按角色重定向
   if (user) {
-    return <Navigate to={user.role === 'super_admin' ? '/admin' : '/app'} replace />;
+    return <Navigate to={user.role === 'super_admin' || user.role === 'store_admin' ? '/admin' : '/app'} replace />;
   }
 
   const validate = (): boolean => {

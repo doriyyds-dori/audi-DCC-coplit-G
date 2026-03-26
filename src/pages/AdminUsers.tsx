@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useAuth } from '../auth/AuthContext';
 import { Users, Loader2 } from 'lucide-react';
 
 // ============================================================
@@ -16,6 +17,7 @@ interface UserItem {
 
 const ROLE_LABEL: Record<string, string> = {
   super_admin: '超级管理员',
+  store_admin: '门店管理员',
   user: '普通用户',
 };
 
@@ -27,12 +29,15 @@ export default function AdminUsers() {
   const [users, setUsers] = useState<UserItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const { getToken } = useAuth();
 
   useEffect(() => {
     setLoading(true);
     setError('');
+    const token = getToken();
+    const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
 
-    fetch('/api/admin/users')
+    fetch('/api/admin/users', { headers })
       .then(async (res) => {
         const json = await res.json();
         if (res.ok && json.success) {
@@ -43,7 +48,7 @@ export default function AdminUsers() {
       })
       .catch(() => setError('网络异常，用户列表加载失败'))
       .finally(() => setLoading(false));
-  }, []);
+  }, [getToken]);
 
   // 加载中
   if (loading) {

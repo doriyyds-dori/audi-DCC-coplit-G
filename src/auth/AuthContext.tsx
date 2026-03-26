@@ -4,7 +4,7 @@ import { createContext, useContext, useState, useEffect, type ReactNode } from '
 // 类型定义
 // ============================================================
 
-export type UserRole = 'super_admin' | 'user';
+export type UserRole = 'super_admin' | 'store_admin' | 'user';
 
 export interface AuthUser {
   userId: string;

@@ -13,24 +13,42 @@ export function useCallSimulation(script: ScriptStep[]) {
   const [history, setHistory] = useState<ChatMessage[]>([]);
   const [isCallActive, setIsCallActive] = useState(false);
   const [globalOptions, setGlobalOptions] = useState<ScriptOption[]>([]);
+  const [conversationId, setConversationId] = useState<string>('');
 
   const currentStep = script.find(s => s.id === currentStepId) || script[0];
+
+  // 首个步骤 ID（动态获取，不硬编码）
+  const firstStepId = script[0]?.id || '开场白';
 
   useEffect(() => {
     const globalStep = script.find(s => s.id === '全局问题');
     setGlobalOptions(globalStep ? globalStep.customerOptions : []);
   }, [script]);
 
+  // 当话术数据源变更时，如果通话已开始且仍在首步阶段，重新填充开场白
+  useEffect(() => {
+    if (isCallActive && script.length > 0) {
+      const opening = script[0];
+      if (opening?.agentScript) {
+        setCurrentStepId(opening.id);
+        setHistory([{ role: 'agent', text: opening.agentScript }]);
+      }
+    }
+  }, [script]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const startCall = () => {
     setIsCallActive(true);
-    setCurrentStepId('开场白');
-    setHistory([{ role: 'agent', text: script.find(s => s.id === '开场白')?.agentScript || '' }]);
+    setConversationId(`conv_${crypto.randomUUID()}`);
+    const opening = script[0];
+    setCurrentStepId(opening?.id || '开场白');
+    setHistory([{ role: 'agent', text: opening?.agentScript || '' }]);
   };
 
   const resetCall = () => {
     setIsCallActive(false);
+    setConversationId('');
     setHistory([]);
-    setCurrentStepId('开场白');
+    setCurrentStepId(script[0]?.id || '开场白');
   };
 
   const handleCustomerResponse = (option: ScriptOption) => {
@@ -63,6 +81,7 @@ export function useCallSimulation(script: ScriptStep[]) {
     history,
     isCallActive,
     globalOptions,
+    conversationId,
     startCall,
     resetCall,
     handleCustomerResponse,

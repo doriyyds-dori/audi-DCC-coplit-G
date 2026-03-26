@@ -1,6 +1,6 @@
 # 智慧外呼助手 — 第一阶段完成状态与下一步计划
 
-> 更新日期：2026-03-25
+> 更新日期：2026-03-26
 
 ---
 
@@ -67,6 +67,40 @@
 - AdminStores → 门店管理（已接真实数据，GET /api/admin/stores）
 - 管理员可在 /admin 和 /app 之间双向切换（AdminLayout 提供「进入话术助手」，HeaderToolbar 提供「管理后台」）
 
+### 双层话术体系 ✅
+- `scripts` 表支持 `global`（统一话术）和 `store`（门店自定义话术）两种 scope
+- `GET /api/scripts/available` 返回当前用户可用话术列表（统一 + 本店）
+- `GET /api/scripts/:scriptId` 返回话术详情（含 CSV 内容）
+- 前端话术选择器支持统一话术 / 自定义话术切换
+- `call_records` 表新增 `scriptId` / `scriptSource` 字段，记录话术来源
+
+### 话术点赞/点踩 ✅
+- `script_feedbacks` 表落地（conversationId + messageIndex 唯一约束）
+- `POST /api/script-feedbacks` 支持 UPSERT（改选覆盖）
+- 前端每条系统建议话术旁增加 👍 / 👎 按钮
+- 每通对话生成 `conversationId`，反馈精确到单句话术
+- 乐观 UI 更新 + 静默 POST
+
+### 多角色管理后台 ✅
+- `store_admin` 角色可登录 `/admin`，自动只看本店数据
+- `/api/admin/stats/today` — store_admin 按 storeId 过滤通话记录
+- `/api/admin/stats/feedback-today` — store_admin 按 storeId 过滤反馈统计
+- `/api/admin/users` — store_admin 只看本店用户
+- `/api/admin/stores` — store_admin 只看本店门店
+- 导航栏对 store_admin 隐藏「门店管理」入口
+- 所有管理接口均增加认证校验（Authorization header）
+
+### 管理后台展示增强 ✅
+- `/admin` 首页新增「话术反馈概览」区域（6 张指标卡片 + Top 5 表格）
+- 明细表改为显示用户姓名 / 门店名称（LEFT JOIN users/stores）
+- 明细表限制最大高度 440px，超出内部滚动
+- 新增「下载明细」CSV 导出功能
+
+### 多门店测试数据 ✅
+- store_001（北京朝阳店）/ store_002（上海浦东店）差异化测试数据已导入
+- 包含不同通话量、意向分布、话术来源占比、反馈倾向
+- 新增 storeadmin2 / user3 / user4 测试账号
+
 ### 双向导航 ✅
 - 管理后台顶部导航 → 「进入话术助手」链接
 - 话术助手顶部工具栏 → 「管理后台」链接（仅管理员角色可见，普通用户不可见）
@@ -80,11 +114,15 @@
 | 前端框架 | React + TypeScript + react-router-dom |
 | 认证方式 | 后端 scrypt 密码校验 + 内存 session + token |
 | 后端形态 | server.ts 提供完整 API（认证 + 业务 + 管理） |
-| 数据存储 | SQLite（`data/app.db`：users / stores / call_records） |
-| 通话记录写入 | ✅ userId/storeId 从 session 获取，不再信任前端 |
-| 今日统计读取 | ✅ SQL 聚合查询 |
-| 用户管理 | ✅ 已接真实 SQLite 数据（只读） |
-| 门店管理 | ✅ 已接真实 SQLite 数据（只读） |
+| 数据存储 | SQLite（`data/app.db`：users / stores / call_records / scripts / script_feedbacks） |
+| 通话记录写入 | ✅ userId/storeId 从 session 获取，scriptId/scriptSource 自动记录 |
+| 话术管理 | ✅ 双层话术体系（global + store），API 加载 + 前端选择 |
+| 话术反馈 | ✅ 点赞/点踩入库，UPSERT 支持改选 |
+| 今日统计读取 | ✅ SQL 聚合查询，store_admin 自动按 storeId 收口 |
+| 反馈统计 | ✅ 概览卡片 + Top 5 表格，store_admin 自动按 storeId 收口 |
+| 用户管理 | ✅ 已接真实 SQLite 数据（只读，按角色收口） |
+| 门店管理 | ✅ 已接真实 SQLite 数据（只读，按角色收口） |
+| 明细导出 | ✅ CSV 下载（含用户姓名 / 门店名称） |
 | TypeScript 检查 | ✅ tsc --noEmit 零报错 |
 | 代码版本管理 | 已同步至 GitHub |
 
@@ -120,13 +158,14 @@
 2. 门店管理新增 / 编辑 / 删除
 
 ### 优先级 P1：统计增强
-1. 日期筛选 + 门店筛选
+1. 日期筛选 + 门店筛选（管理后台）
 2. 趋势统计与导出
+3. 反馈详情审核页
 
 ### 优先级 P2：安全增强
 1. Token 自动过期与刷新
 2. 密码修改功能
-3. 管理接口增加角色校验
+3. 持久化 session（替代内存 Map）
 
 ---
 

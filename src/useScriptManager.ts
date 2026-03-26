@@ -5,6 +5,35 @@ import { DEFAULT_EXISTING_SCRIPT, CSV_TEMPLATE } from './constants';
 import { DEFAULT_COMMON_FAQ } from './defaultFaqData';
 import { safeParse, safeStringify, clearAll } from './storage';
 
+/** 将 CSV 文本解析为 ScriptStep[]，失败返回 null */
+export function parseCsvToSteps(csvText: string): ScriptStep[] | null {
+  const result = Papa.parse<CsvRow>(csvText, { header: true, skipEmptyLines: true });
+  const data = result.data;
+  const requiredColumns = ['Phase', 'StepId', 'CustomerOption', 'AgentResponse'];
+  const actualColumns = result.meta.fields || [];
+  const missingColumns = requiredColumns.filter(col => !actualColumns.includes(col));
+  if (missingColumns.length > 0) return null;
+
+  const steps: ScriptStep[] = [];
+  const phases = Array.from(new Set(data.map(d => d.Phase)));
+  phases.forEach((phase, index) => {
+    const phaseData = data.filter(d => d.Phase === phase);
+    const stepId = phaseData[0].StepId || `step_${index}`;
+    steps.push({
+      id: stepId,
+      phase: phase as string,
+      coreLogic: phaseData[0].CoreLogic || '',
+      agentScript: phaseData[0].AgentScript || (stepId === '全局问题' ? '（客户随时可能追问的问题）' : '请继续引导客户'),
+      customerOptions: phaseData.map(d => ({
+        label: d.CustomerOption,
+        agentResponse: d.AgentResponse,
+        nextStepId: d.NextStepId,
+      })),
+    });
+  });
+  return steps.length > 0 ? steps : null;
+}
+
 /**
  * useScriptManager — 话术数据管理
  *

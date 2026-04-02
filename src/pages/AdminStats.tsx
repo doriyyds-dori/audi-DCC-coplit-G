@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
-import { BarChart3, Loader2, ThumbsUp, ThumbsDown, Download } from 'lucide-react';
+import { BarChart3, Loader2, ThumbsUp, ThumbsDown, Download, GitCompareArrows } from 'lucide-react';
 
 // ============================================================
 // 类型与映射
@@ -25,6 +25,10 @@ interface StatsResponse {
     notConnected: number;
     noIntent: number;
     hasIntent: number;
+    globalCalls: number;
+    storeCalls: number;
+    globalHasIntent: number;
+    storeHasIntent: number;
   };
   records: CallRecord[];
 }
@@ -167,6 +171,53 @@ export default function AdminStats() {
         <SummaryCard label="未接通" value={summary.notConnected} color="text-gray-500" />
         <SummaryCard label="无意向" value={summary.noIntent} color="text-orange-500" />
         <SummaryCard label="有意向" value={summary.hasIntent} color="text-green-600" />
+      </div>
+
+      {/* ========== 话术来源对比 ========== */}
+      <div className="mb-6">
+        <div className="flex items-center gap-2 mb-4">
+          <GitCompareArrows className="w-4 h-4 text-brand" />
+          <h3 className="text-base font-bold text-gray-900">话术来源对比</h3>
+        </div>
+        {(() => {
+          const s = summary;
+          const fb = feedbackData?.summary ?? { totalLikes: 0, totalDislikes: 0, globalLikes: 0, globalDislikes: 0, storeLikes: 0, storeDislikes: 0 };
+          return (
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-100">
+                    <th className="text-left px-4 py-3 font-bold text-gray-600 text-xs">指标</th>
+                    <th className="text-center px-4 py-3 font-bold text-blue-600 text-xs">统一话术</th>
+                    <th className="text-center px-4 py-3 font-bold text-green-600 text-xs">自定义话术</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b border-gray-50">
+                    <td className="px-4 py-2.5 text-xs text-gray-600 font-bold">通话次数</td>
+                    <td className="px-4 py-2.5 text-center text-sm font-bold text-blue-600">{s.globalCalls}</td>
+                    <td className="px-4 py-2.5 text-center text-sm font-bold text-green-600">{s.storeCalls}</td>
+                  </tr>
+                  <tr className="border-b border-gray-50">
+                    <td className="px-4 py-2.5 text-xs text-gray-600 font-bold">有意向数</td>
+                    <td className="px-4 py-2.5 text-center text-sm font-bold text-blue-600">{s.globalHasIntent}</td>
+                    <td className="px-4 py-2.5 text-center text-sm font-bold text-green-600">{s.storeHasIntent}</td>
+                  </tr>
+                  <tr className="border-b border-gray-50">
+                    <td className="px-4 py-2.5 text-xs text-gray-600 font-bold">点赞数</td>
+                    <td className="px-4 py-2.5 text-center text-sm font-bold text-blue-600">{fb.globalLikes}</td>
+                    <td className="px-4 py-2.5 text-center text-sm font-bold text-green-600">{fb.storeLikes}</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-2.5 text-xs text-gray-600 font-bold">点踩数</td>
+                    <td className="px-4 py-2.5 text-center text-sm font-bold text-blue-600">{fb.globalDislikes}</td>
+                    <td className="px-4 py-2.5 text-center text-sm font-bold text-green-600">{fb.storeDislikes}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          );
+        })()}
       </div>
 
       {/* 明细表格 */}

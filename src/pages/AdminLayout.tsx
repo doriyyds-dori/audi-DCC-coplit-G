@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react';
 import { NavLink, Link, Outlet } from 'react-router-dom';
-import { BarChart3, Users, Store, Phone, LogOut } from 'lucide-react';
+import { BarChart3, Users, Store, Phone, LogOut, FileText } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '../utils';
@@ -17,6 +17,8 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/admin', label: '今日统计', icon: <BarChart3 className="w-4 h-4" />, end: true },
   { to: '/admin/users', label: '用户管理', icon: <Users className="w-4 h-4" /> },
   { to: '/admin/stores', label: '门店管理', icon: <Store className="w-4 h-4" />, superOnly: true },
+  { to: '/admin/scripts/global', label: '统一话术', icon: <FileText className="w-4 h-4" />, superOnly: true },
+  { to: '/admin/scripts/store', label: '门店话术', icon: <FileText className="w-4 h-4" /> },
 ];
 
 /**

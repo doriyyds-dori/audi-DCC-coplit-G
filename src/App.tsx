@@ -7,6 +7,8 @@ import AdminLayout from './pages/AdminLayout';
 import AdminStats from './pages/AdminStats';
 import AdminUsers from './pages/AdminUsers';
 import AdminStores from './pages/AdminStores';
+import AdminScriptsGlobal from './pages/AdminScriptsGlobal';
+import AdminScriptsStore from './pages/AdminScriptsStore';
 
 /**
  * App — 路由分发入口
@@ -53,6 +55,8 @@ export default function App() {
         <Route index element={<AdminStats />} />
         <Route path="users" element={<AdminUsers />} />
         <Route path="stores" element={<AdminStores />} />
+        <Route path="scripts/global" element={<AdminScriptsGlobal />} />
+        <Route path="scripts/store" element={<AdminScriptsStore />} />
       </Route>
       <Route path="/" element={<RootRedirect />} />
       <Route path="*" element={<RootRedirect />} />

@@ -446,11 +446,25 @@ async function startServer() {
 
       const countMap = Object.fromEntries(counts.map((c) => [c.status, c.cnt]));
 
+      // scriptSource 维度统计
+      const sourceCounts = db.prepare(
+        `SELECT scriptSource, COUNT(*) AS cnt, SUM(CASE WHEN status = 'has_intent' THEN 1 ELSE 0 END) AS intentCnt FROM call_records WHERE callDate = ?${storeFilter} GROUP BY scriptSource`
+      ).all(...params) as Array<{ scriptSource: string; cnt: number; intentCnt: number }>;
+      let globalCalls = 0, storeCalls = 0, globalHasIntent = 0, storeHasIntent = 0;
+      for (const r of sourceCounts) {
+        if (r.scriptSource === 'global') { globalCalls = r.cnt; globalHasIntent = r.intentCnt; }
+        else { storeCalls += r.cnt; storeHasIntent += r.intentCnt; }
+      }
+
       const summary = {
         totalCalls: todayRecords.length,
         notConnected: countMap["not_connected"] ?? 0,
         noIntent: countMap["no_intent"] ?? 0,
         hasIntent: countMap["has_intent"] ?? 0,
+        globalCalls,
+        storeCalls,
+        globalHasIntent,
+        storeHasIntent,
       };
 
       res.json({ success: true, summary, records: todayRecords });
@@ -735,21 +749,17 @@ async function startServer() {
         return;
       }
       let scripts;
+      const listSql = `SELECT s.scriptId, s.name, s.scenarioType, s.storeId, s.sourceScriptId, src.name AS sourceScriptName, s.enabled, s.createdAt, s.updatedAt
+         FROM scripts s LEFT JOIN scripts src ON s.sourceScriptId = src.scriptId AND src.scope = 'global'`;
       if (access.user.role === "super_admin") {
         const filterStoreId = req.query.storeId as string | undefined;
         if (filterStoreId) {
-          scripts = db.prepare(
-            "SELECT scriptId, name, scenarioType, storeId, sourceScriptId, enabled, createdAt, updatedAt FROM scripts WHERE scope = 'store' AND storeId = ?"
-          ).all(filterStoreId);
+          scripts = db.prepare(listSql + " WHERE s.scope = 'store' AND s.storeId = ?").all(filterStoreId);
         } else {
-          scripts = db.prepare(
-            "SELECT scriptId, name, scenarioType, storeId, sourceScriptId, enabled, createdAt, updatedAt FROM scripts WHERE scope = 'store'"
-          ).all();
+          scripts = db.prepare(listSql + " WHERE s.scope = 'store'").all();
         }
       } else {
-        scripts = db.prepare(
-          "SELECT scriptId, name, scenarioType, storeId, sourceScriptId, enabled, createdAt, updatedAt FROM scripts WHERE scope = 'store' AND storeId = ?"
-        ).all(access.storeId);
+        scripts = db.prepare(listSql + " WHERE s.scope = 'store' AND s.storeId = ?").all(access.storeId);
       }
       res.json({ success: true, scripts });
     } catch (err) {
@@ -767,7 +777,9 @@ async function startServer() {
         return;
       }
       const script = db.prepare(
-        "SELECT scriptId, name, scenarioType, storeId, sourceScriptId, content, enabled, createdAt, updatedAt FROM scripts WHERE scriptId = ? AND scope = 'store'"
+        `SELECT s.scriptId, s.name, s.scenarioType, s.storeId, s.sourceScriptId, src.name AS sourceScriptName, s.content, s.enabled, s.createdAt, s.updatedAt
+         FROM scripts s LEFT JOIN scripts src ON s.sourceScriptId = src.scriptId AND src.scope = 'global'
+         WHERE s.scriptId = ? AND s.scope = 'store'`
       ).get(req.params.scriptId) as { storeId: string } | undefined;
       if (!script) {
         res.status(404).json({ success: false, error: "话术不存在" });
